@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.ivione93.dto.f1api.PaginationParams;
 import org.ivione93.dto.f1api.seasons.F1SeasonsResponse;
+import org.ivione93.dto.f1api.teams.F1TeamsResponse;
 import org.ivione93.services.dataservices.F1ApiDataService;
 
 @ApplicationScoped
@@ -13,5 +14,9 @@ public class F1ApiProvider {
 
   public F1SeasonsResponse getSeasons(final PaginationParams paginationParams) {
     return f1ApiDataService.getSeasons(paginationParams);
+  }
+
+  public F1TeamsResponse getCurrentTeams(final PaginationParams paginationParams) {
+    return f1ApiDataService.getCurrentTeams(paginationParams);
   }
 }
