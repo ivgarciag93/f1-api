@@ -3,6 +3,7 @@ package org.ivione93.services.providers;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.ivione93.dto.f1api.PaginationParams;
+import org.ivione93.dto.f1api.drivers.F1DriversResponse;
 import org.ivione93.dto.f1api.seasons.F1SeasonsResponse;
 import org.ivione93.dto.f1api.teams.F1TeamsResponse;
 import org.ivione93.services.dataservices.F1ApiDataService;
@@ -18,5 +19,9 @@ public class F1ApiProvider {
 
   public F1TeamsResponse getCurrentTeams(final PaginationParams paginationParams) {
     return f1ApiDataService.getCurrentTeams(paginationParams);
+  }
+
+  public F1DriversResponse getCurrentDrivers(final PaginationParams paginationParams) {
+    return f1ApiDataService.getCurrentDrivers(paginationParams);
   }
 }

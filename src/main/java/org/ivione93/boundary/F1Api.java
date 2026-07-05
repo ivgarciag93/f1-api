@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import org.ivione93.dto.f1api.DriversResponse;
 import org.ivione93.dto.f1api.PaginationParams;
 import org.ivione93.dto.f1api.SeasonsResponse;
 import org.ivione93.dto.f1api.TeamsResponse;
@@ -31,5 +32,13 @@ public class F1Api {
   public TeamsResponse getCurrentTeams(@BeanParam PaginationParams paginationParams) {
     Log.info("Call to get current teams");
     return f1Service.getCurrentTeams(paginationParams);
+  }
+
+  // Endpoint 3: Obtener pilotos actuales
+  @GET
+  @Path("/drivers/current")
+  public DriversResponse getCurrentDrivers(@BeanParam PaginationParams paginationParams) {
+    Log.info("Call to get current drivers");
+    return f1Service.getCurrentDrivers(paginationParams);
   }
 }
