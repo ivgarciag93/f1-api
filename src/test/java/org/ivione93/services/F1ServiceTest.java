@@ -3,9 +3,13 @@ package org.ivione93.services;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import org.ivione93.dto.f1api.PaginationParams;
+import org.ivione93.dto.f1.Driver;
 import org.ivione93.dto.f1.Team;
-import org.ivione93.dto.f1api.SeasonsResponse;
-import org.ivione93.dto.f1api.TeamsResponse;
+import org.ivione93.dto.f1.DriversResponse;
+import org.ivione93.dto.f1.SeasonsResponse;
+import org.ivione93.dto.f1.TeamsResponse;
+import org.ivione93.dto.f1api.drivers.F1Driver;
+import org.ivione93.dto.f1api.drivers.F1DriversResponse;
 import org.ivione93.dto.f1api.seasons.F1Championship;
 import org.ivione93.dto.f1api.seasons.F1SeasonsResponse;
 import org.ivione93.dto.f1api.teams.F1Team;
@@ -16,6 +20,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -222,5 +227,120 @@ class F1ServiceTest {
     assertEquals(10, result.limit());
     assertEquals(5, result.offset());
     verify(f1ApiAsyncCallService).getCurrentTeams(customParams);
+  }
+
+  // CURRENT DRIVERS
+  @Test
+  @DisplayName("getCurrentDrivers should return converted response when all is ok")
+  void testGetCurrentDrivers_Success() {
+    F1DriversResponse f1Response =
+        new F1DriversResponse(
+            30,
+            0,
+            1,
+            2024,
+            "f1",
+            List.of(
+                new F1Driver(
+                    "ver",
+                    "Max",
+                    "Verstappen",
+                    "Netherlands",
+                    "1997-09-30",
+                    1,
+                    "VER",
+                    "https://example.com",
+                    "red_bull")));
+    DriversResponse expected =
+        new DriversResponse(
+            30,
+            0,
+            1,
+            List.of(
+                new Driver(
+                    "Max Verstappen", "Netherlands", LocalDate.of(1997, 9, 30), 1, "red_bull")));
+
+    when(f1ApiAsyncCallService.getCurrentDrivers(any(PaginationParams.class)))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentDriversResponse(f1Response)).thenReturn(expected);
+
+    DriversResponse result = f1Service.getCurrentDrivers(new PaginationParams());
+
+    assertNotNull(result);
+    assertEquals(30, result.limit());
+    assertEquals(0, result.offset());
+    assertEquals(1, result.totalResults());
+    assertEquals(1, result.drivers().size());
+    assertEquals("Max Verstappen", result.drivers().getFirst().name());
+    assertEquals("Netherlands", result.drivers().getFirst().nationality());
+
+    verify(f1ApiAsyncCallService).getCurrentDrivers(any(PaginationParams.class));
+    verify(f1Converter).fillCurrentDriversResponse(f1Response);
+  }
+
+  @Test
+  @DisplayName("getCurrentDrivers should return empty drivers when empty response")
+  void testGetCurrentDrivers_EmptyResponse_Success() {
+    F1DriversResponse f1Response =
+        new F1DriversResponse(0, 0, 0, 2024, "f1", Collections.emptyList());
+    DriversResponse expected = new DriversResponse(0, 0, 0, Collections.emptyList());
+
+    when(f1ApiAsyncCallService.getCurrentDrivers(any(PaginationParams.class)))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentDriversResponse(f1Response)).thenReturn(expected);
+
+    DriversResponse result = f1Service.getCurrentDrivers(new PaginationParams());
+
+    assertNotNull(result);
+    assertEquals(0, result.totalResults());
+    assertTrue(result.drivers().isEmpty());
+  }
+
+  @Test
+  @DisplayName("getCurrentDrivers should throw RuntimeException when service fails")
+  void testGetCurrentDrivers_ServiceFails_ThrowRuntimeException() {
+    CompletableFuture<F1DriversResponse> failedFuture = new CompletableFuture<>();
+    failedFuture.completeExceptionally(new RuntimeException("API error"));
+
+    when(f1ApiAsyncCallService.getCurrentDrivers(any(PaginationParams.class)))
+        .thenReturn(failedFuture);
+
+    assertThrows(RuntimeException.class, () -> f1Service.getCurrentDrivers(new PaginationParams()));
+    verify(f1Converter, never()).fillCurrentDriversResponse(any());
+  }
+
+  @Test
+  @DisplayName("getCurrentDrivers should throw RuntimeException when converter fails")
+  void testGetCurrentDrivers_ConverterFails_ThrowRuntimeException() {
+    F1DriversResponse f1Response =
+        new F1DriversResponse(30, 0, 1, 2024, "f1", Collections.emptyList());
+
+    when(f1ApiAsyncCallService.getCurrentDrivers(any(PaginationParams.class)))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentDriversResponse(f1Response))
+        .thenThrow(new RuntimeException("Conversion error"));
+
+    assertThrows(RuntimeException.class, () -> f1Service.getCurrentDrivers(new PaginationParams()));
+  }
+
+  @Test
+  @DisplayName("getCurrentDrivers should pass pagination params to async service")
+  void testGetCurrentDrivers_PaginationParamsPassed() {
+    F1DriversResponse f1Response =
+        new F1DriversResponse(10, 5, 1, 2024, "f1", Collections.emptyList());
+    DriversResponse expected = new DriversResponse(10, 5, 1, Collections.emptyList());
+
+    PaginationParams customParams = new PaginationParams();
+
+    when(f1ApiAsyncCallService.getCurrentDrivers(customParams))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentDriversResponse(f1Response)).thenReturn(expected);
+
+    DriversResponse result = f1Service.getCurrentDrivers(customParams);
+
+    assertNotNull(result);
+    assertEquals(10, result.limit());
+    assertEquals(5, result.offset());
+    verify(f1ApiAsyncCallService).getCurrentDrivers(customParams);
   }
 }
