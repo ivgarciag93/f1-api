@@ -5,6 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.ivione93.dto.f1api.PaginationParams;
 import org.ivione93.dto.f1api.seasons.F1SeasonsResponse;
+import org.ivione93.dto.f1api.teams.F1TeamsResponse;
 import org.ivione93.services.providers.F1ApiProvider;
 
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +23,18 @@ public class F1ApiAsyncCallService extends AsyncCallService {
         .exceptionally(
             ex -> {
               Log.errorf(ex, "Error obtaining seasons in F1 API");
+              throw toCompletionException(ex);
+            });
+  }
+
+  public CompletableFuture<F1TeamsResponse> getCurrentTeams(
+      final PaginationParams paginationParams) {
+    return managedExecutor
+        .supplyAsync(() -> f1ApiProvider.getCurrentTeams(paginationParams))
+        .orTimeout(timeoutMilliseconds, TimeUnit.MILLISECONDS)
+        .exceptionally(
+            ex -> {
+              Log.errorf(ex, "Error obtaining current teams in F1 API");
               throw toCompletionException(ex);
             });
   }

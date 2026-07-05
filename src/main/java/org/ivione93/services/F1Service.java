@@ -5,7 +5,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.ivione93.dto.f1api.PaginationParams;
 import org.ivione93.dto.f1api.SeasonsResponse;
+import org.ivione93.dto.f1api.TeamsResponse;
 import org.ivione93.dto.f1api.seasons.F1SeasonsResponse;
+import org.ivione93.dto.f1api.teams.F1TeamsResponse;
 import org.ivione93.services.async.F1ApiAsyncCallService;
 import org.ivione93.services.converters.F1Converter;
 
@@ -25,6 +27,17 @@ public class F1Service {
       return f1Converter.fillSeasonsResponse(futureSeasons.join());
     } catch (Exception ex) {
       Log.errorf(ex, "Error while obtaining seasons.");
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public TeamsResponse getCurrentTeams(final PaginationParams paginationParams) {
+    final CompletableFuture<F1TeamsResponse> futureTeams =
+        f1ApiAsyncCallService.getCurrentTeams(paginationParams);
+    try {
+      return f1Converter.fillCurrentTeamsResponse(futureTeams.join());
+    } catch (Exception ex) {
+      Log.errorf(ex, "Error while obtaining current teams.");
       throw new RuntimeException(ex);
     }
   }

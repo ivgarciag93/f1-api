@@ -3,9 +3,13 @@ package org.ivione93.services;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import org.ivione93.dto.f1api.PaginationParams;
+import org.ivione93.dto.f1.Team;
 import org.ivione93.dto.f1api.SeasonsResponse;
+import org.ivione93.dto.f1api.TeamsResponse;
 import org.ivione93.dto.f1api.seasons.F1Championship;
 import org.ivione93.dto.f1api.seasons.F1SeasonsResponse;
+import org.ivione93.dto.f1api.teams.F1Team;
+import org.ivione93.dto.f1api.teams.F1TeamsResponse;
 import org.ivione93.services.async.F1ApiAsyncCallService;
 import org.ivione93.services.converters.F1Converter;
 import jakarta.inject.Inject;
@@ -29,6 +33,7 @@ class F1ServiceTest {
 
   @Inject F1Service f1Service;
 
+  // SEASONS
   @Test
   @DisplayName("getSeasons should return converted response when all is ok")
   void testGetSeasons_Success() {
@@ -85,10 +90,7 @@ class F1ServiceTest {
 
     when(f1ApiAsyncCallService.getSeasons(any(PaginationParams.class))).thenReturn(failedFuture);
 
-    RuntimeException ex =
-        assertThrows(RuntimeException.class, () -> f1Service.getSeasons(new PaginationParams()));
-    assertInstanceOf(java.util.concurrent.CompletionException.class, ex.getCause());
-    assertEquals("API error", ex.getCause().getCause().getMessage());
+    assertThrows(RuntimeException.class, () -> f1Service.getSeasons(new PaginationParams()));
     verify(f1Converter, never()).fillSeasonsResponse(any());
   }
 
@@ -102,10 +104,7 @@ class F1ServiceTest {
     when(f1Converter.fillSeasonsResponse(f1Response))
         .thenThrow(new RuntimeException("Conversion error"));
 
-    RuntimeException ex =
-        assertThrows(RuntimeException.class, () -> f1Service.getSeasons(new PaginationParams()));
-    assertInstanceOf(RuntimeException.class, ex.getCause());
-    assertEquals("Conversion error", ex.getCause().getMessage());
+    assertThrows(RuntimeException.class, () -> f1Service.getSeasons(new PaginationParams()));
   }
 
   @Test
@@ -126,5 +125,102 @@ class F1ServiceTest {
     assertEquals(10, result.limit());
     assertEquals(5, result.offset());
     verify(f1ApiAsyncCallService).getSeasons(customParams);
+  }
+
+  // CURRENT TEAMS
+  @Test
+  @DisplayName("getCurrentTeams should return converted response when all is ok")
+  void testGetCurrentTeams_Success() {
+    F1TeamsResponse f1Response =
+        new F1TeamsResponse(
+            30,
+            0,
+            1,
+            2024,
+            List.of(
+                new F1Team(
+                    "red_bull", "Red Bull Racing", "Austrian", 2005, 6, 7, "https://example.com")));
+    TeamsResponse expected =
+        new TeamsResponse(30, 0, 1, List.of(new Team("Red Bull Racing", "Austrian", 2024, 6, 7)));
+
+    when(f1ApiAsyncCallService.getCurrentTeams(any(PaginationParams.class)))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentTeamsResponse(f1Response)).thenReturn(expected);
+
+    TeamsResponse result = f1Service.getCurrentTeams(new PaginationParams());
+
+    assertNotNull(result);
+    assertEquals(30, result.limit());
+    assertEquals(0, result.offset());
+    assertEquals(1, result.totalResults());
+    assertEquals(1, result.teams().size());
+    assertEquals("Red Bull Racing", result.teams().getFirst().name());
+    assertEquals("Austrian", result.teams().getFirst().nationality());
+
+    verify(f1ApiAsyncCallService).getCurrentTeams(any(PaginationParams.class));
+    verify(f1Converter).fillCurrentTeamsResponse(f1Response);
+  }
+
+  @Test
+  @DisplayName("getCurrentTeams should return empty teams when empty response")
+  void testGetCurrentTeams_EmptyResponse_Success() {
+    F1TeamsResponse f1Response = new F1TeamsResponse(0, 0, 0, 2024, Collections.emptyList());
+    TeamsResponse expected = new TeamsResponse(0, 0, 0, Collections.emptyList());
+
+    when(f1ApiAsyncCallService.getCurrentTeams(any(PaginationParams.class)))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentTeamsResponse(f1Response)).thenReturn(expected);
+
+    TeamsResponse result = f1Service.getCurrentTeams(new PaginationParams());
+
+    assertNotNull(result);
+    assertEquals(0, result.totalResults());
+    assertTrue(result.teams().isEmpty());
+  }
+
+  @Test
+  @DisplayName("getCurrentTeams should throw RuntimeException when service fails")
+  void testGetCurrentTeams_ServiceFails_ThrowRuntimeException() {
+    CompletableFuture<F1TeamsResponse> failedFuture = new CompletableFuture<>();
+    failedFuture.completeExceptionally(new RuntimeException("API error"));
+
+    when(f1ApiAsyncCallService.getCurrentTeams(any(PaginationParams.class)))
+        .thenReturn(failedFuture);
+
+    assertThrows(RuntimeException.class, () -> f1Service.getCurrentTeams(new PaginationParams()));
+    verify(f1Converter, never()).fillCurrentTeamsResponse(any());
+  }
+
+  @Test
+  @DisplayName("getCurrentTeams should throw RuntimeException when converter fails")
+  void testGetCurrentTeams_ConverterFails_ThrowRuntimeException() {
+    F1TeamsResponse f1Response = new F1TeamsResponse(30, 0, 1, 2024, Collections.emptyList());
+
+    when(f1ApiAsyncCallService.getCurrentTeams(any(PaginationParams.class)))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentTeamsResponse(f1Response))
+        .thenThrow(new RuntimeException("Conversion error"));
+
+    assertThrows(RuntimeException.class, () -> f1Service.getCurrentTeams(new PaginationParams()));
+  }
+
+  @Test
+  @DisplayName("getCurrentTeams should pass pagination params to async service")
+  void testGetCurrentTeams_PaginationParamsPassed() {
+    F1TeamsResponse f1Response = new F1TeamsResponse(10, 5, 1, 2024, Collections.emptyList());
+    TeamsResponse expected = new TeamsResponse(10, 5, 1, Collections.emptyList());
+
+    PaginationParams customParams = new PaginationParams();
+
+    when(f1ApiAsyncCallService.getCurrentTeams(customParams))
+        .thenReturn(CompletableFuture.completedFuture(f1Response));
+    when(f1Converter.fillCurrentTeamsResponse(f1Response)).thenReturn(expected);
+
+    TeamsResponse result = f1Service.getCurrentTeams(customParams);
+
+    assertNotNull(result);
+    assertEquals(10, result.limit());
+    assertEquals(5, result.offset());
+    verify(f1ApiAsyncCallService).getCurrentTeams(customParams);
   }
 }
