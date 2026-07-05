@@ -2,9 +2,9 @@ package org.ivione93.collaborative;
 
 import org.ivione93.dto.f1.Driver;
 import org.ivione93.dto.f1.Team;
-import org.ivione93.dto.f1api.DriversResponse;
-import org.ivione93.dto.f1api.SeasonsResponse;
-import org.ivione93.dto.f1api.TeamsResponse;
+import org.ivione93.dto.f1.DriversResponse;
+import org.ivione93.dto.f1.SeasonsResponse;
+import org.ivione93.dto.f1.TeamsResponse;
 
 import java.time.LocalDate;
 import java.util.List;

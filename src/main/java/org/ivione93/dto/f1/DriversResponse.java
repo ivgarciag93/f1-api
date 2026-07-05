@@ -1,6 +1,4 @@
-package org.ivione93.dto.f1api;
-
-import org.ivione93.dto.f1.Driver;
+package org.ivione93.dto.f1;
 
 import java.util.List;
 

@@ -6,10 +6,10 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import org.ivione93.dto.f1api.DriversResponse;
+import org.ivione93.dto.f1.DriversResponse;
 import org.ivione93.dto.f1api.PaginationParams;
-import org.ivione93.dto.f1api.SeasonsResponse;
-import org.ivione93.dto.f1api.TeamsResponse;
+import org.ivione93.dto.f1.SeasonsResponse;
+import org.ivione93.dto.f1.TeamsResponse;
 import org.ivione93.services.F1Service;
 
 @ApplicationScoped

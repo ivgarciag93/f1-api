@@ -2,9 +2,9 @@ package org.ivione93.services.converters;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import org.ivione93.dto.f1api.DriversResponse;
-import org.ivione93.dto.f1api.SeasonsResponse;
-import org.ivione93.dto.f1api.TeamsResponse;
+import org.ivione93.dto.f1.DriversResponse;
+import org.ivione93.dto.f1.SeasonsResponse;
+import org.ivione93.dto.f1.TeamsResponse;
 import org.ivione93.dto.f1api.drivers.F1Driver;
 import org.ivione93.dto.f1api.drivers.F1DriversResponse;
 import org.ivione93.dto.f1api.seasons.F1Championship;
